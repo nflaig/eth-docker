@@ -1,0 +1,23 @@
+services:
+  otterscan:
+    image: otterscan/otterscan:${OTTERSCAN_TAG:-v2.10.0}
+    restart: unless-stopped
+    environment:
+      ERIGON_URL: ${ERIGON_URL:-http://execution:8551}
+      BEACON_API_URL: ${CL_NODE:-http://consensus:5052}
+    ports:
+      - ${SHARE_IP:-}:${OTTERSCAN_REST_PORT:-5100}:80/tcp
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}.service=${OTTERSCAN_HOST:-otterscan}
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}.entrypoints=websecure
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}.rule=Host(`${OTTERSCAN_HOST:-otterscan}.${DOMAIN}`)
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}lb.service=${OTTERSCAN_HOST:-otterscan}
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}lb.entrypoints=websecure
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}lb.rule=Host(`${OTTERSCAN_LB:-otterscan-lb}.${DOMAIN}`)
+      - traefik.http.routers.${OTTERSCAN_HOST:-otterscan}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${OTTERSCAN_HOST:-otterscan}.loadbalancer.server.port=${OTTERSCAN_REST_PORT:-80}
+networks:
+  default:
+    enable_ipv6: ${IPV6:-false}
